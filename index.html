@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mood Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f4f8;
+      color: #334155;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1e293b;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      margin-top: 0.35rem;
+      font-size: 0.95rem;
+      color: #64748b;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+    }
+
+    .mood-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .moods {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 1.75rem;
+    }
+
+    .mood-btn {
+      background: none;
+      border: 2px solid transparent;
+      border-radius: 16px;
+      padding: 0.6rem 0.75rem;
+      cursor: pointer;
+      font-size: 2.5rem;
+      line-height: 1;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .mood-btn span.label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .mood-btn:hover {
+      transform: scale(1.12);
+      background: #f8fafc;
+    }
+
+    .mood-btn.selected {
+      border-color: #818cf8;
+      background: #eef2ff;
+    }
+
+    .mood-btn.selected span.label {
+      color: #6366f1;
+    }
+
+    textarea {
+      width: 100%;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: #334155;
+      resize: none;
+      outline: none;
+      background: #f8fafc;
+      transition: border-color 0.15s;
+      margin-bottom: 1.25rem;
+    }
+
+    textarea:focus {
+      border-color: #818cf8;
+      background: #fff;
+    }
+
+    textarea::placeholder { color: #cbd5e1; }
+
+    .save-btn {
+      width: 100%;
+      padding: 0.85rem;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .save-btn:hover { background: #4f46e5; }
+    .save-btn:active { transform: scale(0.98); }
+
+    .save-btn:disabled {
+      background: #c7d2fe;
+      cursor: not-allowed;
+    }
+
+    /* History */
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 2rem 0 1rem;
+    }
+
+    .history-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .clear-btn {
+      background: none;
+      border: none;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .clear-btn:hover { color: #ef4444; background: #fef2f2; }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .entry {
+      background: #fff;
+      border-radius: 14px;
+      padding: 1rem 1.25rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      animation: slideIn 0.25s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .entry-emoji {
+      font-size: 2rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .entry-body { flex: 1; min-width: 0; }
+
+    .entry-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .entry-mood-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #6366f1;
+      background: #eef2ff;
+      padding: 0.15rem 0.55rem;
+      border-radius: 99px;
+    }
+
+    .entry-time {
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .entry-note {
+      margin-top: 0.4rem;
+      font-size: 0.9rem;
+      color: #475569;
+      word-break: break-word;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+    }
+
+    .empty-state span { display: block; font-size: 2rem; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Mood Tracker</h1>
+      <p>How are you feeling today?</p>
+    </header>
+
+    <div class="card">
+      <p class="mood-label">Select your mood</p>
+      <div class="moods" id="moodPicker">
+        <button class="mood-btn" data-mood="Great" data-emoji="😄">
+          😄<span class="label">Great</span>
+        </button>
+        <button class="mood-btn" data-mood="Good" data-emoji="😊">
+          😊<span class="label">Good</span>
+        </button>
+        <button class="mood-btn" data-mood="Okay" data-emoji="😐">
+          😐<span class="label">Okay</span>
+        </button>
+        <button class="mood-btn" data-mood="Low" data-emoji="😔">
+          😔<span class="label">Low</span>
+        </button>
+        <button class="mood-btn" data-mood="Sad" data-emoji="😢">
+          😢<span class="label">Sad</span>
+        </button>
+      </div>
+
+      <textarea id="noteField" rows="3" placeholder="Add a note (optional)…"></textarea>
+      <button class="save-btn" id="saveBtn" disabled>Save Entry</button>
+    </div>
+
+    <div class="history-header">
+      <h2>Past Entries</h2>
+      <button class="clear-btn" id="clearBtn">Clear all</button>
+    </div>
+
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'mood_tracker_entries';
+    let selectedMood = null;
+
+    const moodPicker  = document.getElementById('moodPicker');
+    const noteField   = document.getElementById('noteField');
+    const saveBtn     = document.getElementById('saveBtn');
+    const historyList = document.getElementById('historyList');
+    const clearBtn    = document.getElementById('clearBtn');
+
+    function loadEntries() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function saveEntries(entries) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+           + ' · '
+           + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+
+    function renderHistory() {
+      const entries = loadEntries();
+      if (entries.length === 0) {
+        historyList.innerHTML = '<div class="empty-state"><span>📋</span>No entries yet — log your first mood above!</div>';
+        return;
+      }
+      historyList.innerHTML = entries
+        .slice()
+        .reverse()
+        .map(e => `
+          <div class="entry">
+            <div class="entry-emoji">${e.emoji}</div>
+            <div class="entry-body">
+              <div class="entry-meta">
+                <span class="entry-mood-name">${e.mood}</span>
+                <span class="entry-time">${formatDate(e.timestamp)}</span>
+              </div>
+              ${e.note ? `<div class="entry-note">${escapeHtml(e.note)}</div>` : ''}
+            </div>
+          </div>
+        `)
+        .join('');
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    moodPicker.addEventListener('click', e => {
+      const btn = e.target.closest('.mood-btn');
+      if (!btn) return;
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedMood = { mood: btn.dataset.mood, emoji: btn.dataset.emoji };
+      saveBtn.disabled = false;
+    });
+
+    saveBtn.addEventListener('click', () => {
+      if (!selectedMood) return;
+      const entries = loadEntries();
+      entries.push({
+        mood: selectedMood.mood,
+        emoji: selectedMood.emoji,
+        note: noteField.value.trim(),
+        timestamp: new Date().toISOString(),
+      });
+      saveEntries(entries);
+      // reset
+      selectedMood = null;
+      noteField.value = '';
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+      saveBtn.disabled = true;
+      renderHistory();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if (loadEntries().length === 0) return;
+      if (confirm('Clear all mood entries? This cannot be undone.')) {
+        localStorage.removeItem(STORAGE_KEY);
+        renderHistory();
+      }
+    });
+
+    renderHistory();
+  </script>
+</body>
+</html>
